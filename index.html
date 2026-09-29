@@ -32,6 +32,7 @@
           <fieldset>
             <legend>Invoice</legend>
             <div class="two-col"><label>Invoice number<input id="invoice-number" type="text" readonly /></label><label>Date<input id="invoice-date" type="date" /></label></div>
+            <label>Bill type<select id="bill-length"><option value="small">Small bill</option><option value="long">Long bill — compact items</option></select></label>
           </fieldset>
 
           <fieldset>
@@ -41,10 +42,13 @@
             <label class="shipping-field">Shipping charges (₹)<input id="shipping" type="number" min="0" step="0.01" value="0" inputmode="decimal" /></label>
           </fieldset>
         </form>
+        <datalist id="clothing-items">
+          <option value="Shirt"><option value="T-Shirt"><option value="Formal Shirt"><option value="Casual Shirt"><option value="Kurta"><option value="Kurta Pajama"><option value="Jeans"><option value="Trousers"><option value="Pants"><option value="Shorts"><option value="Track Pants"><option value="Lower"><option value="Dress"><option value="Gown"><option value="Top"><option value="Skirt"><option value="Leggings"><option value="Palazzo"><option value="Saree"><option value="Blouse"><option value="Salwar Suit"><option value="Suit"><option value="Boys Suit"><option value="Woollen Suit"><option value="Kids Suit"><option value="Jacket"><option value="Blazer"><option value="Sweater"><option value="Cardigan"><option value="Hoodie"><option value="Coat"><option value="Waistcoat"><option value="Sherwani"><option value="Night Suit"><option value="Night Dress"><option value="Pyjama Set"><option value="School Uniform"><option value="Baby Set"><option value="Socks"><option value="Belt"><option value="Scarf"><option value="Dupatta"><option value="Innerwear">
+        </datalist>
       </section>
 
       <section class="preview-panel" aria-labelledby="preview-title">
-        <div class="preview-heading"><div><p class="eyebrow">LIVE PREVIEW</p><h2 id="preview-title">A5 invoice</h2></div><span>A5 · Portrait</span></div>
+        <div class="preview-heading"><div><p class="eyebrow">LIVE PREVIEW</p><h2 id="preview-title">A5 invoice</h2></div><span id="preview-page-count">A5 · Portrait</span></div>
         <div class="paper-stage">
           <article id="invoice-paper" class="invoice-paper" aria-label="Invoice preview">
             <div class="invoice-top">
@@ -52,10 +56,10 @@
             </div>
             <div class="divider"></div>
             <div class="bill-row"><div><span class="invoice-label">BILL TO</span><h4 id="preview-customer-name">Customer</h4><p id="preview-customer-phone"></p></div></div>
-            <table class="invoice-table"><thead><tr><th>S. No.</th><th>Item</th><th>Qty</th><th>MRP</th><th>Sale price</th><th>Total</th></tr></thead><tbody id="preview-items"></tbody></table>
+            <table class="invoice-table"><thead><tr><th>S. No.</th><th>Item</th><th>Qty</th><th>MRP</th><th>Sale price</th><th>Total</th></tr></thead><tbody id="preview-items"></tbody><tfoot><tr class="total-qty-row"><td colspan="2">Total Qty</td><td id="preview-pieces">0</td><td colspan="3"></td></tr></tfoot></table>
             <div class="invoice-bottom">
               <div class="invoice-notes"><div class="thank-you">Thank you for your purchase!<p class="return-note">No returns.</p></div></div>
-              <div class="totals"><div><span>Total pieces</span><strong id="preview-pieces">0</strong></div><div><span>Subtotal</span><strong id="preview-subtotal">₹0</strong></div><div id="preview-shipping-row" hidden><span>Shipping charges</span><strong id="preview-shipping">₹0</strong></div><div class="savings"><span>You saved</span><strong id="preview-savings">₹0</strong></div><div class="grand-total"><span>Grand total</span><strong id="preview-grand-total">₹0</strong></div></div>
+              <div class="totals"><div><span>Subtotal</span><strong id="preview-subtotal">₹0</strong></div><div id="preview-shipping-row" hidden><span>Shipping charges</span><strong id="preview-shipping">₹0</strong></div><div class="savings"><span>You saved</span><strong id="preview-savings">₹0</strong></div><div class="grand-total"><span>Grand total</span><strong id="preview-grand-total">₹0</strong></div></div>
             </div>
           </article>
         </div>
