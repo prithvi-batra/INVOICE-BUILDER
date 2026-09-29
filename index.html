@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#243b7a" />
+    <title>Quick Invoice</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Quick Invoice home"><img class="site-logo" src="assets/jyoti-garments-logo.png" alt="Jyoti Garments" /> <span class="brand-mark">Q</span>Quick Invoice</a>
+      <span class="header-note">Fast, simple invoices</span>
+    </header>
+
+    <main id="top" class="app-shell">
+      <section class="editor" aria-labelledby="form-title">
+        <div class="section-heading"><p class="eyebrow">CREATE INVOICE</p><h1 id="form-title">Invoice details</h1><p>Everything stays in this tab only.</p></div>
+        <form id="invoice-form" novalidate>
+          <fieldset>
+            <legend>Customer</legend>
+            <label>Customer name <span class="required">Required</span><input id="customer-name" type="text" value="Customer" placeholder="Customer name" autocomplete="name" aria-describedby="customer-error" required /></label>
+            <p id="customer-error" class="field-error" role="alert"></p>
+            <label>Customer phone <span>Optional</span><input id="customer-phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel" /></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Invoice</legend>
+            <div class="two-col"><label>Invoice number<input id="invoice-number" type="text" readonly /></label><label>Date<input id="invoice-date" type="date" /></label></div>
+            <label>Payment status<select id="payment-status"><option value="paid">Paid</option><option value="pending">Pending</option></select></label>
+          </fieldset>
+
+          <fieldset>
+            <div class="legend-row"><legend>Line items</legend><button id="add-item" class="text-button" type="button">+ Add item</button></div>
+            <div id="item-editor-list" class="item-editor-list" aria-live="polite"></div>
+            <label class="shipping-field">Shipping charges (₹)<input id="shipping" type="number" min="0" step="0.01" value="0" inputmode="decimal" /></label>
+          </fieldset>
+        </form>
+      </section>
+
+      <section class="preview-panel" aria-labelledby="preview-title">
+        <div class="preview-heading"><div><p class="eyebrow">LIVE PREVIEW</p><h2 id="preview-title">A5 invoice</h2></div><span>A5 · Portrait</span></div>
+        <div class="paper-stage">
+          <article id="invoice-paper" class="invoice-paper" aria-label="Invoice preview">
+            <div class="invoice-top">
+              <div class="seller-block"><img id="preview-logo" class="preview-logo" src="assets/jyoti-garments-logo.png" alt="Jyoti Garments logo" /><div><h3 id="preview-business-name">JYOTI GARMENTS</h3><p id="preview-business-address">BANSA BAZAR, PHAGWARA, PUNJAB</p><p id="preview-business-phone">+91 98141-06526</p></div></div>
+              <div class="invoice-title"><h2>INVOICE</h2><p id="preview-invoice-number">INV-0001</p><p id="preview-date"></p></div>
+            </div>
+            <div class="divider"></div>
+            <div class="bill-row"><div><span class="invoice-label">BILL TO</span><h4 id="preview-customer-name">Customer</h4><p id="preview-customer-phone"></p></div><span id="preview-status-top" class="status-badge paid">PAID</span></div>
+            <table class="invoice-table"><thead><tr><th>S. No.</th><th>Item</th><th>Qty</th><th>MRP</th><th>Sale price</th><th>Total</th></tr></thead><tbody id="preview-items"></tbody></table>
+            <div class="invoice-bottom">
+              <div class="thank-you">Thank you for your purchase!</div>
+              <div class="totals"><div><span>Total pieces</span><strong id="preview-pieces">0</strong></div><div><span>Subtotal</span><strong id="preview-subtotal">₹0</strong></div><div id="preview-shipping-row" hidden><span>Shipping charges</span><strong id="preview-shipping">₹0</strong></div><div class="savings"><span>You saved</span><strong id="preview-savings">₹0</strong></div><div class="grand-total"><span>Grand total</span><strong id="preview-grand-total">₹0</strong></div><div class="payment-total"><span>Payment status</span><b id="preview-status-bottom" class="status-badge paid">PAID</b></div></div>
+            </div>
+          </article>
+        </div>
+        <div class="quick-actions" aria-label="Quick actions"><h2>Quick actions</h2><p>Ready when your invoice is.</p><div><button id="download-pdf" class="action primary" type="button">Download PDF</button><button id="share-invoice" class="action" type="button">Share Invoice</button><button id="print-invoice" class="action" type="button">Print Invoice</button></div><div class="invoice-file-actions"><button id="save-invoice" class="file-action" type="button">Save invoice file</button><label class="file-action" for="open-invoice">Open saved invoice<input id="open-invoice" type="file" accept="application/json,.json" hidden /></label></div><p id="action-message" class="action-message" role="status"></p></div>
+      </section>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
