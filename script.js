@@ -80,13 +80,20 @@ function saveInvoice(){const content=JSON.stringify(invoiceFile(),null,2);const 
 function openInvoice(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.items))throw new Error();$('invoice-number').value=data.invoiceNumber||invoiceNumber();$('invoice-date').value=data.date||$('invoice-date').value;$('customer-name').value=data.customerName||'Customer';$('customer-phone').value=data.customerPhone||'';$('shipping').value=Math.max(0,Number(data.shipping)||0);$('item-editor-list').innerHTML='';(data.items.length?data.items:[{}]).forEach(item=>addItem(item.name||'',Math.max(1,Number(item.qty)||1),Math.max(0,Number(item.price)||0)));render();setMessage('Saved invoice opened. You can edit it now.','success');}catch{setMessage('That file is not a valid Quick Invoice file.','error');}event.target.value='';};reader.readAsText(file);}
 
 const today=new Date(); $('invoice-date').value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-'); $('invoice-number').value=invoiceNumber();
-function addNewItem(){
+function addNewItem(event){
+  if(event) event.preventDefault();
   addItem();
-  const newItem = itemRows().at(-1);
-  newItem.querySelector('.item-name-input').focus();
-  newItem.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  const rows=itemRows();
+  const newItem=rows[rows.length-1];
+  window.setTimeout(function(){
+    const nameInput=newItem.querySelector('.item-name-input');
+    if(nameInput) nameInput.focus();
+    if(newItem) newItem.scrollIntoView(true);
+  },0);
 }
-fields.forEach(id=>$(id).addEventListener('input',normalizeAndRender)); $('add-item').addEventListener('click',addNewItem);
+fields.forEach(id=>$(id).addEventListener('input',normalizeAndRender));
+$('add-item').addEventListener('click',addNewItem);
+$('add-item').addEventListener('touchend',addNewItem,{passive:false});
 $('download-pdf').addEventListener('click',downloadPdf); $('share-invoice').addEventListener('click',shareInvoice); $('print-invoice').addEventListener('click',printInvoice);
 $('save-invoice').addEventListener('click',saveInvoice); $('open-invoice').addEventListener('change',openInvoice);
 addItem(); render();
