@@ -1,6 +1,6 @@
 /* Quick Invoice is deliberately session-only: no localStorage, backend, or saved catalog. */
 const $ = (id) => document.getElementById(id);
-const fields = ['customer-name','customer-phone','invoice-date','payment-status','shipping'];
+const fields = ['customer-name','customer-phone','invoice-date','shipping'];
 const currency = new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2});
 let itemId = 0;
 
@@ -33,7 +33,6 @@ function render(){
   text('preview-business-address','BANSA BAZAR, PHAGWARA, PUNJAB'); text('preview-business-phone','+91 98141-06526');
   text('preview-customer-name',$('customer-name').value.trim(),'Customer name'); text('preview-customer-phone',$('customer-phone').value.trim());
   text('preview-invoice-number',$('invoice-number').value); text('preview-date',formatDate($('invoice-date').value));
-  const paid=$('payment-status').value==='paid'; ['preview-status-top','preview-status-bottom'].forEach(id=>{const el=$(id);el.textContent=paid?'PAID':'PENDING';el.className=`status-badge ${paid?'paid':'pending'}`;});
   let subtotal=0, original=0, pieces=0;
   $('preview-items').innerHTML=items.map(item=>{const mrp=item.price/0.85,total=item.qty*item.price;subtotal+=total;original+=item.qty*mrp;pieces+=item.qty;return `<tr><td>${item.number}</td><td><span class="item-name">${escapeHtml(item.name)}</span></td><td>${item.qty}</td><td><span class="mrp">${money(mrp)}</span></td><td><span class="sale-price">${money(item.price)}</span></td><td>${money(total)}</td></tr>`;}).join('');
   const savings=original-subtotal; text('preview-pieces',pieces); text('preview-subtotal',money(subtotal)); text('preview-savings',money(savings)); text('preview-grand-total',money(subtotal+shipping));
@@ -76,9 +75,9 @@ async function printInvoice(){
     }
   }catch(e){if(e.name!=='AbortError')setMessage('Could not prepare the printer-ready PDF. Please use Download PDF.','error');}
 }
-function invoiceFile(){return {version:1,invoiceNumber:$('invoice-number').value,date:$('invoice-date').value,paymentStatus:$('payment-status').value,customerName:$('customer-name').value,customerPhone:$('customer-phone').value,shipping:$('shipping').value,items:currentItems()};}
+function invoiceFile(){return {version:1,invoiceNumber:$('invoice-number').value,date:$('invoice-date').value,customerName:$('customer-name').value,customerPhone:$('customer-phone').value,shipping:$('shipping').value,items:currentItems()};}
 function saveInvoice(){const content=JSON.stringify(invoiceFile(),null,2);const url=URL.createObjectURL(new Blob([content],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download=`Invoice-${$('invoice-number').value}.json`;link.click();URL.revokeObjectURL(url);setMessage('Invoice file saved. You can open it later to continue editing.','success');}
-function openInvoice(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.items))throw new Error();$('invoice-number').value=data.invoiceNumber||invoiceNumber();$('invoice-date').value=data.date||$('invoice-date').value;$('payment-status').value=data.paymentStatus==='pending'?'pending':'paid';$('customer-name').value=data.customerName||'Customer';$('customer-phone').value=data.customerPhone||'';$('shipping').value=Math.max(0,Number(data.shipping)||0);$('item-editor-list').innerHTML='';(data.items.length?data.items:[{}]).forEach(item=>addItem(item.name||'',Math.max(1,Number(item.qty)||1),Math.max(0,Number(item.price)||0)));render();setMessage('Saved invoice opened. You can edit it now.','success');}catch{setMessage('That file is not a valid Quick Invoice file.','error');}event.target.value='';};reader.readAsText(file);}
+function openInvoice(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.items))throw new Error();$('invoice-number').value=data.invoiceNumber||invoiceNumber();$('invoice-date').value=data.date||$('invoice-date').value;$('customer-name').value=data.customerName||'Customer';$('customer-phone').value=data.customerPhone||'';$('shipping').value=Math.max(0,Number(data.shipping)||0);$('item-editor-list').innerHTML='';(data.items.length?data.items:[{}]).forEach(item=>addItem(item.name||'',Math.max(1,Number(item.qty)||1),Math.max(0,Number(item.price)||0)));render();setMessage('Saved invoice opened. You can edit it now.','success');}catch{setMessage('That file is not a valid Quick Invoice file.','error');}event.target.value='';};reader.readAsText(file);}
 
 const today=new Date(); $('invoice-date').value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-'); $('invoice-number').value=invoiceNumber();
 function addNewItem(){
@@ -87,7 +86,7 @@ function addNewItem(){
   newItem.querySelector('.item-name-input').focus();
   newItem.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
-fields.forEach(id=>$(id).addEventListener('input',normalizeAndRender)); $('payment-status').addEventListener('change',render); $('add-item').addEventListener('click',addNewItem);
+fields.forEach(id=>$(id).addEventListener('input',normalizeAndRender)); $('add-item').addEventListener('click',addNewItem);
 $('download-pdf').addEventListener('click',downloadPdf); $('share-invoice').addEventListener('click',shareInvoice); $('print-invoice').addEventListener('click',printInvoice);
 $('save-invoice').addEventListener('click',saveInvoice); $('open-invoice').addEventListener('change',openInvoice);
 addItem(); render();
