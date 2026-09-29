@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#243b7a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Quick Invoice" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="assets/icon-192.png" />
     <title>Quick Invoice</title>
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -55,7 +60,7 @@
             </div>
           </article>
         </div>
-        <div class="quick-actions" aria-label="Quick actions"><h2>Quick actions</h2><p>Ready when your invoice is.</p><div><button id="download-pdf" class="action primary" type="button">Download PDF</button><button id="share-invoice" class="action" type="button">Share Invoice</button><button id="print-invoice" class="action" type="button">Print Invoice</button></div><div class="invoice-file-actions"><button id="save-invoice" class="file-action" type="button">Save invoice file</button><label class="file-action" for="open-invoice">Open saved invoice<input id="open-invoice" type="file" accept="application/json,.json" hidden /></label></div><p id="action-message" class="action-message" role="status"></p></div>
+        <div class="quick-actions" aria-label="Quick actions"><h2>Quick actions</h2><p>Ready when your invoice is.</p><div><button id="download-pdf" class="action primary" type="button">Download PDF</button><button id="share-invoice" class="action" type="button">Share Invoice</button><button id="print-invoice" class="action" type="button">Print Invoice</button><button id="install-app" class="action" type="button" hidden>Install App</button></div><div class="invoice-file-actions"><button id="save-invoice" class="file-action" type="button">Save invoice file</button><label class="file-action" for="open-invoice">Open saved invoice<input id="open-invoice" type="file" accept="application/json,.json" hidden /></label></div><p id="action-message" class="action-message" role="status"></p></div>
       </section>
     </main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
