@@ -29,8 +29,6 @@ function currentItems(){return itemRows().map((row,index)=>({number:index+1,name
 function render(){
   const items=currentItems(); const shipping=Math.max(0,Number($('shipping').value)||0);
   itemRows().forEach((row,i)=>row.querySelector('.serial').textContent=`${i+1}.`);
-  text('preview-business-name','JYOTI GARMENTS');
-  text('preview-business-address','BANSA BAZAR, PHAGWARA, PUNJAB'); text('preview-business-phone','+91 98141-06526');
   text('preview-customer-name',$('customer-name').value.trim(),'Customer name'); text('preview-customer-phone',$('customer-phone').value.trim());
   text('preview-invoice-number',$('invoice-number').value); text('preview-date',formatDate($('invoice-date').value));
   let subtotal=0, original=0, pieces=0;

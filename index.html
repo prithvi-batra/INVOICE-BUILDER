@@ -14,7 +14,7 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="#top" aria-label="Quick Invoice home"><img class="site-logo" src="assets/jyoti-garments-logo.png" alt="Jyoti Garments" /> <span class="brand-mark">Q</span>Quick Invoice</a>
+      <a class="brand" href="#top" aria-label="Quick Invoice home"><span class="brand-mark">Q</span>Quick Invoice</a>
       <span class="header-note">Fast, simple invoices</span>
     </header>
 
@@ -48,14 +48,13 @@
         <div class="paper-stage">
           <article id="invoice-paper" class="invoice-paper" aria-label="Invoice preview">
             <div class="invoice-top">
-              <div class="seller-block"><img id="preview-logo" class="preview-logo" src="assets/jyoti-garments-logo.png" alt="Jyoti Garments logo" /><div><h3 id="preview-business-name"></h3><p id="preview-business-address"></p><p id="preview-business-phone"></p></div></div>
               <div class="invoice-title"><h2>INVOICE ESTIMATE</h2><p id="preview-invoice-number">INV-0001</p><p id="preview-date"></p></div>
             </div>
             <div class="divider"></div>
             <div class="bill-row"><div><span class="invoice-label">BILL TO</span><h4 id="preview-customer-name">Customer</h4><p id="preview-customer-phone"></p></div></div>
             <table class="invoice-table"><thead><tr><th>S. No.</th><th>Item</th><th>Qty</th><th>MRP</th><th>Sale price</th><th>Total</th></tr></thead><tbody id="preview-items"></tbody></table>
             <div class="invoice-bottom">
-              <div class="invoice-notes"><img class="invoice-qr" src="assets/qr.jpg" alt="Payment QR code" /><div class="thank-you">Thank you for your purchase!<p class="return-note">No returns.</p></div></div>
+              <div class="invoice-notes"><div class="thank-you">Thank you for your purchase!<p class="return-note">No returns.</p></div></div>
               <div class="totals"><div><span>Total pieces</span><strong id="preview-pieces">0</strong></div><div><span>Subtotal</span><strong id="preview-subtotal">₹0</strong></div><div id="preview-shipping-row" hidden><span>Shipping charges</span><strong id="preview-shipping">₹0</strong></div><div class="savings"><span>You saved</span><strong id="preview-savings">₹0</strong></div><div class="grand-total"><span>Grand total</span><strong id="preview-grand-total">₹0</strong></div></div>
             </div>
           </article>
