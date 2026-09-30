@@ -12,5 +12,7 @@
 .pdf-render-stage{position:fixed;left:-10000px;top:0;display:grid;gap:20px;background:#fff}
 .subtotal-row,.shipping-row{font-size:13.5px;font-weight:800}.subtotal-row strong,.shipping-row strong{font-size:13.5px;font-weight:800}
 #preview-shipping-row[hidden]{display:none!important}
+.edit-last-bill{display:block;width:100%;margin:13px 0 0;padding:10px 12px;border:1px solid #263f80;border-radius:8px;background:#eef2ff;color:#263f80;font-size:13px;font-weight:800;cursor:pointer;text-align:left}.edit-last-bill:hover{background:#263f80;color:#fff}.edit-last-bill[hidden]{display:none}
+.lookup-message{min-height:16px;margin:-7px 0 10px;font-size:12px;color:var(--muted)}.save-sheet{border-style:solid;background:#e8f6ef;color:#147a55;border-color:#147a55}.save-sheet:hover{background:#147a55;color:#fff}
 .long-bill tbody tr:nth-child(21) td{border-top:2mm solid #e7eaf1!important;box-shadow:0 -1mm 0 #202530}@media print{.long-bill tbody tr:nth-child(21) td{border-top:.25mm solid #000!important;box-shadow:none}}
 @media print{.invoice-paper{position:relative!important;overflow:hidden!important;break-inside:avoid!important;page-break-inside:avoid!important}.invoice-bottom{position:absolute!important;left:10mm!important;right:10mm!important;bottom:10mm!important;margin:0!important;break-inside:avoid!important;page-break-inside:avoid!important}.invoice-table{break-inside:avoid!important;page-break-inside:avoid!important}}

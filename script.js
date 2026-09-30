@@ -2,7 +2,10 @@
 const $ = (id) => document.getElementById(id);
 const fields = ['customer-name','customer-phone','invoice-date','bill-length','shipping'];
 const currency = new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2});
+const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyW05o0YSof6yPxyNrvDU5WXtkCahPp-Qhei6iiTqOuCCjz0StZCMK6E3xKuFADHLAJxQ/exec';
 let itemId = 0;
+let lookupTimer;
+let savedLastInvoice = null;
 
 function invoiceNumber(){ return `INV-${String(Math.floor(Math.random()*9999)+1).padStart(4,'0')}`; }
 function money(value){ return currency.format(Number(value)||0).replace(/\.00$/, ''); }
@@ -26,6 +29,7 @@ function normalizeAndRender(event){
   render();
 }
 function currentItems(){return itemRows().map((row,index)=>({number:index+1,name:row.querySelector('.item-name-input').value.trim()||'Item',qty:Math.max(0,Number(row.querySelector('.qty-input').value)||0),price:Math.max(0,Number(row.querySelector('.price-input').value)||0)}));}
+function customerPhoneKey(){const digits=$('customer-phone').value.replace(/\D/g,'');return digits.length===12&&digits.startsWith('91')?digits.slice(2):digits;}
 function render(){
   const items=currentItems(); const shipping=Math.max(0,Number($('shipping').value)||0);
   const longBill=$('bill-length').value==='long'||items.length>10;
@@ -78,14 +82,15 @@ function createPdfPages(paper,rowGroups){
   document.body.append(stage);
   return pages;
 }
-async function downloadPdf(){if(!validCustomer())return;try{setMessage('Preparing your PDF…');const pdf=await createPdf();pdf.save(`Invoice-${$('invoice-number').value}.pdf`);setMessage('Your PDF download has started.','success');}catch(e){setMessage(e.message,'error');}}
-async function shareInvoice(){if(!validCustomer())return;try{setMessage('Preparing your invoice…');const pdf=await createPdf();const file=new File([pdf.output('blob')],`Invoice-${$('invoice-number').value}.pdf`,{type:'application/pdf'});const summary=`Invoice ${$('invoice-number').value} for ${$('customer-name').value} — ${$('preview-grand-total').textContent}`;
+async function downloadPdf(){if(!validCustomer())return;await autoSaveToSheet();try{setMessage('Preparing your PDF…');const pdf=await createPdf();pdf.save(`Invoice-${$('invoice-number').value}.pdf`);setMessage('Your PDF download has started.','success');}catch(e){setMessage(e.message,'error');}}
+async function shareInvoice(){if(!validCustomer())return;await autoSaveToSheet();try{setMessage('Preparing your invoice…');const pdf=await createPdf();const file=new File([pdf.output('blob')],`Invoice-${$('invoice-number').value}.pdf`,{type:'application/pdf'});const summary=`Invoice ${$('invoice-number').value} for ${$('customer-name').value} — ${$('preview-grand-total').textContent}`;
   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:'Quick Invoice',text:summary,files:[file]});setMessage('Invoice shared.','success');}
   else if(navigator.share){await navigator.share({title:'Quick Invoice',text:summary});setMessage('Invoice summary shared.','success');}
   else {pdf.save(`Invoice-${$('invoice-number').value}.pdf`);try{await navigator.clipboard.writeText(summary);setMessage('PDF downloaded and invoice summary copied.','success');}catch{setMessage('File sharing is unavailable here, so the PDF was downloaded.','success');}}
 }catch(e){if(e.name==='AbortError')setMessage('Sharing cancelled.');else setMessage('Could not share the invoice. Please download the PDF instead.','error');}}
 async function printInvoice(){
   if(!validCustomer())return;
+  await autoSaveToSheet();
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   if(!isIOS){render();window.print();return;}
   try{
@@ -102,6 +107,47 @@ async function printInvoice(){
   }catch(e){if(e.name!=='AbortError')setMessage('Could not prepare the printer-ready PDF. Please use Download PDF.','error');}
 }
 function invoiceFile(){return {version:1,invoiceNumber:$('invoice-number').value,date:$('invoice-date').value,customerName:$('customer-name').value,customerPhone:$('customer-phone').value,shipping:$('shipping').value,items:currentItems()};}
+function sheetInvoiceData(){
+  const items=currentItems(); const shipping=Math.max(0,Number($('shipping').value)||0);
+  const subtotal=items.reduce((sum,item)=>sum+(item.qty*item.price),0);
+  return {invoiceNumber:$('invoice-number').value,date:$('invoice-date').value,phone:customerPhoneKey(),customerName:$('customer-name').value.trim(),totalQty:items.reduce((sum,item)=>sum+item.qty,0),subtotal,shipping,grandTotal:subtotal+shipping,items:items.map(item=>({...item,mrp:item.price/0.80,lineTotal:item.qty*item.price}))};
+}
+async function lookupCustomer(){
+  const phone=customerPhoneKey(); const message=$('customer-lookup-message'); const editButton=$('edit-last-bill');
+  if(phone.length!==10){message.textContent='';savedLastInvoice=null;editButton.hidden=true;return;}
+  message.textContent='Checking saved customer…';
+  try{
+    const response=await fetch(`${SHEET_API_URL}?phone=${encodeURIComponent(phone)}&includeLastInvoice=true`);
+    const data=await response.json();
+    if(data.found&&data.name){
+      $('customer-name').value=data.name;render();message.textContent='Saved customer found and filled in.';
+      savedLastInvoice=data.lastInvoice&&Array.isArray(data.lastInvoice.items)?data.lastInvoice:null;
+      editButton.hidden=!savedLastInvoice;
+    }
+    else {message.textContent='New customer — details will be saved when you save this bill.';savedLastInvoice=null;editButton.hidden=true;}
+  }catch{message.textContent='Could not reach the customer sheet right now.';savedLastInvoice=null;editButton.hidden=true;}
+}
+function loadLastInvoice(data){
+  $('invoice-number').value=data.invoiceNumber||invoiceNumber(); $('invoice-date').value=data.date||$('invoice-date').value;
+  $('customer-name').value=data.customerName||$('customer-name').value; $('customer-phone').value=data.phone||$('customer-phone').value;
+  $('shipping').value=Math.max(0,Number(data.shipping)||0); $('item-editor-list').innerHTML='';
+  (data.items.length?data.items:[{}]).forEach(item=>addItem(item.name||'',Math.max(0,Number(item.qty)||0),Math.max(0,Number(item.price)||0)));
+  render(); setMessage('Last saved bill loaded. You can continue editing it.','success');
+}
+async function saveToSheet(options={}){
+  if(!validCustomer())return false;
+  const data=sheetInvoiceData();
+  if(!data.phone){if(!options.silent){setMessage('Enter a customer phone number to save this customer and bill.','error');$('customer-phone').focus();}return false;}
+  try{
+    if(!options.silent)setMessage('Saving to customer sheet…');
+    const response=await fetch(SHEET_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)});
+    const result=await response.json();
+    if(!result.success)throw new Error();
+    if(!options.silent)setMessage('Customer and invoice saved to your Google Sheet.','success');
+    return true;
+  }catch{if(!options.silent)setMessage('Could not save to Google Sheet. Please check your connection and Apps Script deployment.','error');return false;}
+}
+async function autoSaveToSheet(){await saveToSheet({silent:true});}
 function saveInvoice(){const content=JSON.stringify(invoiceFile(),null,2);const url=URL.createObjectURL(new Blob([content],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download=`Invoice-${$('invoice-number').value}.json`;link.click();URL.revokeObjectURL(url);setMessage('Invoice file saved. You can open it later to continue editing.','success');}
 function openInvoice(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.items))throw new Error();$('invoice-number').value=data.invoiceNumber||invoiceNumber();$('invoice-date').value=data.date||$('invoice-date').value;$('customer-name').value=data.customerName||'Customer';$('customer-phone').value=data.customerPhone||'';$('shipping').value=Math.max(0,Number(data.shipping)||0);$('item-editor-list').innerHTML='';(data.items.length?data.items:[{}]).forEach(item=>addItem(item.name||'',Math.max(0,Number(item.qty)||0),Math.max(0,Number(item.price)||0)));render();setMessage('Saved invoice opened. You can edit it now.','success');}catch{setMessage('That file is not a valid Quick Invoice file.','error');}event.target.value='';};reader.readAsText(file);}
 
@@ -119,10 +165,14 @@ function addNewItem(event){
 }
 fields.forEach(id=>$(id).addEventListener('input',normalizeAndRender));
 $('bill-length').addEventListener('change',render);
+$('customer-phone').addEventListener('input',()=>{clearTimeout(lookupTimer);const phone=customerPhoneKey();if(phone.length===10)lookupTimer=setTimeout(lookupCustomer,250);else{$('edit-last-bill').hidden=true;savedLastInvoice=null;}});
+$('customer-phone').addEventListener('change',lookupCustomer);
+$('edit-last-bill').addEventListener('click',()=>{if(savedLastInvoice)loadLastInvoice(savedLastInvoice);});
 $('add-item').addEventListener('click',addNewItem);
 $('add-item').addEventListener('touchend',addNewItem,{passive:false});
 $('download-pdf').addEventListener('click',downloadPdf); $('share-invoice').addEventListener('click',shareInvoice); $('print-invoice').addEventListener('click',printInvoice);
 $('save-invoice').addEventListener('click',saveInvoice); $('open-invoice').addEventListener('change',openInvoice);
+$('save-to-sheet').addEventListener('click',saveToSheet);
 let installPrompt;
 window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;$('install-app').hidden=false;});
 $('install-app').addEventListener('click',async()=>{if(!installPrompt)return;installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$('install-app').hidden=true;});

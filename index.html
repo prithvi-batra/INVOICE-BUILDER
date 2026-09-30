@@ -26,7 +26,8 @@
             <legend>Customer</legend>
             <label>Customer name <span class="required">Required</span><input id="customer-name" type="text" value="Customer" placeholder="Customer name" autocomplete="name" aria-describedby="customer-error" required /></label>
             <p id="customer-error" class="field-error" role="alert"></p>
-            <label>Customer phone <span>Optional</span><input id="customer-phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel" /></label>
+            <label>Customer phone <span>Required for Sheet saving</span><input id="customer-phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel" /></label>
+            <p id="customer-lookup-message" class="lookup-message" role="status"></p>
           </fieldset>
 
           <fieldset>
@@ -38,6 +39,7 @@
           <fieldset>
             <div class="legend-row"><legend>Line items</legend></div>
             <div id="item-editor-list" class="item-editor-list" aria-live="polite"></div>
+            <button id="edit-last-bill" class="edit-last-bill" type="button" hidden>↺ Edit last bill</button>
             <button id="add-item" class="text-button add-item-bottom" type="button">+ Add item</button>
             <label class="shipping-field">Shipping charges (₹)<input id="shipping" type="number" min="0" step="0.01" value="0" inputmode="decimal" /></label>
           </fieldset>
@@ -63,7 +65,7 @@
             </div>
           </article>
         </div>
-        <div class="quick-actions" aria-label="Quick actions"><h2>Quick actions</h2><p>Ready when your invoice is.</p><div><button id="download-pdf" class="action primary" type="button">Download PDF</button><button id="share-invoice" class="action" type="button">Share Invoice</button><button id="print-invoice" class="action" type="button">Print Invoice</button><button id="install-app" class="action" type="button" hidden>Install App</button></div><div class="invoice-file-actions"><button id="save-invoice" class="file-action" type="button">Save invoice file</button><label class="file-action" for="open-invoice">Open saved invoice<input id="open-invoice" type="file" accept="application/json,.json" hidden /></label></div><p id="action-message" class="action-message" role="status"></p></div>
+        <div class="quick-actions" aria-label="Quick actions"><h2>Quick actions</h2><p>Ready when your invoice is.</p><div><button id="download-pdf" class="action primary" type="button">Download PDF</button><button id="share-invoice" class="action" type="button">Share Invoice</button><button id="print-invoice" class="action" type="button">Print Invoice</button><button id="install-app" class="action" type="button" hidden>Install App</button></div><div class="invoice-file-actions"><button id="save-to-sheet" class="file-action save-sheet" type="button">Save to customer sheet</button><button id="save-invoice" class="file-action" type="button">Save invoice file</button><label class="file-action" for="open-invoice">Open saved invoice<input id="open-invoice" type="file" accept="application/json,.json" hidden /></label></div><p id="action-message" class="action-message" role="status"></p></div>
       </section>
     </main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
