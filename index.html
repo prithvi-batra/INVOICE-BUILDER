@@ -15,7 +15,7 @@
   <body>
     <header class="site-header">
       <a class="brand" href="#top" aria-label="Quick Invoice home"><span class="brand-mark">Q</span>Quick Invoice</a>
-      <span class="header-note">Fast, simple invoices</span>
+      <div class="header-actions"><button id="new-bill" class="new-bill" type="button">+ New bill</button><span class="header-note">Fast, simple invoices</span></div>
     </header>
 
     <main id="top" class="app-shell">
@@ -41,7 +41,7 @@
             <div id="item-editor-list" class="item-editor-list" aria-live="polite"></div>
             <button id="edit-last-bill" class="edit-last-bill" type="button" hidden>↺ Edit last bill</button>
             <button id="add-item" class="text-button add-item-bottom" type="button">+ Add item</button>
-            <label class="shipping-field">Shipping charges (₹)<input id="shipping" type="number" min="0" step="0.01" value="0" inputmode="decimal" /></label>
+            <div class="shipping-return-fields"><label class="shipping-field">Shipping charges (₹)<input id="shipping" type="number" min="0" step="0.01" value="0" inputmode="decimal" /></label><label class="shipping-field">Returns (₹)<input id="returns" type="number" min="0" step="0.01" value="0" inputmode="decimal" /></label></div>
           </fieldset>
         </form>
         <datalist id="clothing-items">
@@ -61,7 +61,7 @@
             <table class="invoice-table"><thead><tr><th>S. No.</th><th>Item</th><th>Qty</th><th>MRP</th><th>Sale price</th><th>Total</th></tr></thead><tbody id="preview-items"></tbody><tfoot><tr class="total-qty-row"><td colspan="2">Total Qty</td><td id="preview-pieces">0</td><td colspan="3"></td></tr></tfoot></table>
             <div class="invoice-bottom">
               <div class="invoice-notes"><div class="thank-you">Thank you for your purchase!<p class="return-note">No returns.</p></div></div>
-              <div class="totals"><div class="subtotal-row"><span>Subtotal</span><strong id="preview-subtotal">₹0</strong></div><div id="preview-shipping-row" class="shipping-row" hidden><span>Shipping charges</span><strong id="preview-shipping">₹0</strong></div><div class="savings"><span>You saved</span><strong id="preview-savings">₹0</strong></div><div class="grand-total"><span>Grand total</span><strong id="preview-grand-total">₹0</strong></div></div>
+              <div class="totals"><div class="subtotal-row"><span>Subtotal</span><strong id="preview-subtotal">₹0</strong></div><div id="preview-shipping-row" class="shipping-row" hidden><span>Shipping charges</span><strong id="preview-shipping">₹0</strong></div><div id="preview-returns-row" class="returns-row" hidden><span>Returns</span><strong id="preview-returns">−₹0</strong></div><div class="savings"><span>You saved</span><strong id="preview-savings">₹0</strong></div><div class="grand-total"><span>Grand total</span><strong id="preview-grand-total">₹0</strong></div></div>
             </div>
           </article>
         </div>

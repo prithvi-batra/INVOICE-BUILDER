@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quick-invoice-v2';
+const CACHE_NAME = 'quick-invoice-v4';
 const APP_FILES = [
   './', './index.html', './style.css', './script.js', './manifest.webmanifest',
   './assets/jyoti-garments-logo.png', './assets/qr.jpg',

@@ -18,10 +18,10 @@ function doGet(e) {
     const row = invoiceRows.slice(1).reverse().find(invoice => String(invoice[2]).trim() === phone);
     if (row) {
       let items = [];
-      try { items = JSON.parse(row[8] || '[]'); } catch (error) {}
+      try { items = JSON.parse(row[9] || '[]'); } catch (error) {}
       result.lastInvoice = {
         invoiceNumber: row[0], date: formatDateForInput(row[1]), phone: row[2],
-        customerName: row[3], shipping: row[6], items: items
+        customerName: row[3], shipping: row[6], returns: row[7], items: items
       };
     }
   }
@@ -47,7 +47,7 @@ function doPost(e) {
 
   invoices.appendRow([
     data.invoiceNumber || '', data.date || '', phone, name, data.totalQty || 0,
-    data.subtotal || 0, data.shipping || 0, data.grandTotal || 0,
+    data.subtotal || 0, data.shipping || 0, data.returns || 0, data.grandTotal || 0,
     JSON.stringify(data.items || [])
   ]);
   return json({ success: true });

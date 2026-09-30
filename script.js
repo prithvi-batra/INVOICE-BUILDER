@@ -1,6 +1,6 @@
 /* Quick Invoice is deliberately session-only: no localStorage, backend, or saved catalog. */
 const $ = (id) => document.getElementById(id);
-const fields = ['customer-name','customer-phone','invoice-date','bill-length','shipping'];
+const fields = ['customer-name','customer-phone','invoice-date','bill-length','shipping','returns'];
 const currency = new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2});
 const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyW05o0YSof6yPxyNrvDU5WXtkCahPp-Qhei6iiTqOuCCjz0StZCMK6E3xKuFADHLAJxQ/exec';
 let itemId = 0;
@@ -26,12 +26,13 @@ function normalizeAndRender(event){
   if(input?.classList.contains('qty-input') && +input.value<0) input.value=0;
   if(input?.classList.contains('price-input') && +input.value<0) input.value=0;
   if(input?.id==='shipping' && +input.value<0) input.value=0;
+  if(input?.id==='returns' && +input.value<0) input.value=0;
   render();
 }
 function currentItems(){return itemRows().map((row,index)=>({number:index+1,name:row.querySelector('.item-name-input').value.trim()||'Item',qty:Math.max(0,Number(row.querySelector('.qty-input').value)||0),price:Math.max(0,Number(row.querySelector('.price-input').value)||0)}));}
 function customerPhoneKey(){const digits=$('customer-phone').value.replace(/\D/g,'');return digits.length===12&&digits.startsWith('91')?digits.slice(2):digits;}
 function render(){
-  const items=currentItems(); const shipping=Math.max(0,Number($('shipping').value)||0);
+  const items=currentItems(); const shipping=Math.max(0,Number($('shipping').value)||0); const returns=Math.max(0,Number($('returns').value)||0);
   const longBill=$('bill-length').value==='long'||items.length>10;
   $('invoice-paper').classList.toggle('compact-items',longBill);
   $('invoice-paper').classList.toggle('long-bill',longBill);
@@ -42,8 +43,9 @@ function render(){
   text('preview-invoice-number',$('invoice-number').value); text('preview-date',formatDate($('invoice-date').value));
   let subtotal=0, original=0, pieces=0;
   $('preview-items').innerHTML=items.map(item=>{const mrp=item.price/0.80,total=item.qty*item.price;subtotal+=total;original+=item.qty*mrp;pieces+=item.qty;return `<tr><td>${item.number}</td><td><span class="item-name">${escapeHtml(item.name)}</span></td><td>${item.qty}</td><td><span class="mrp">${money(mrp)}</span></td><td><span class="sale-price">${money(item.price)}</span></td><td>${money(total)}</td></tr>`;}).join('');
-  const savings=original-subtotal; text('preview-pieces',pieces); text('preview-subtotal',money(subtotal)); text('preview-savings',money(savings)); text('preview-grand-total',money(subtotal+shipping));
+  const savings=original-subtotal; text('preview-pieces',pieces); text('preview-subtotal',money(subtotal)); text('preview-savings',money(savings)); text('preview-grand-total',money(Math.max(0,subtotal+shipping-returns)));
   $('preview-shipping-row').hidden=shipping<=0; text('preview-shipping',money(shipping));
+  $('preview-returns-row').hidden=returns<=0; text('preview-returns',`−${money(returns)}`);
 }
 function formatDate(iso){if(!iso)return '';const [y,m,d]=iso.split('-');return `${d}/${m}/${y}`;}
 function validCustomer(){const name=$('customer-name').value.trim();const error=$('customer-error');error.textContent=name?'':'Please enter the customer name before continuing.';if(!name)$('customer-name').focus();return Boolean(name);}
@@ -106,11 +108,11 @@ async function printInvoice(){
     }
   }catch(e){if(e.name!=='AbortError')setMessage('Could not prepare the printer-ready PDF. Please use Download PDF.','error');}
 }
-function invoiceFile(){return {version:1,invoiceNumber:$('invoice-number').value,date:$('invoice-date').value,customerName:$('customer-name').value,customerPhone:$('customer-phone').value,shipping:$('shipping').value,items:currentItems()};}
+function invoiceFile(){return {version:1,invoiceNumber:$('invoice-number').value,date:$('invoice-date').value,customerName:$('customer-name').value,customerPhone:$('customer-phone').value,shipping:$('shipping').value,returns:$('returns').value,items:currentItems()};}
 function sheetInvoiceData(){
-  const items=currentItems(); const shipping=Math.max(0,Number($('shipping').value)||0);
+  const items=currentItems(); const shipping=Math.max(0,Number($('shipping').value)||0); const returns=Math.max(0,Number($('returns').value)||0);
   const subtotal=items.reduce((sum,item)=>sum+(item.qty*item.price),0);
-  return {invoiceNumber:$('invoice-number').value,date:$('invoice-date').value,phone:customerPhoneKey(),customerName:$('customer-name').value.trim(),totalQty:items.reduce((sum,item)=>sum+item.qty,0),subtotal,shipping,grandTotal:subtotal+shipping,items:items.map(item=>({...item,mrp:item.price/0.80,lineTotal:item.qty*item.price}))};
+  return {invoiceNumber:$('invoice-number').value,date:$('invoice-date').value,phone:customerPhoneKey(),customerName:$('customer-name').value.trim(),totalQty:items.reduce((sum,item)=>sum+item.qty,0),subtotal,shipping,returns,grandTotal:Math.max(0,subtotal+shipping-returns),items:items.map(item=>({...item,mrp:item.price/0.80,lineTotal:item.qty*item.price}))};
 }
 async function lookupCustomer(){
   const phone=customerPhoneKey(); const message=$('customer-lookup-message'); const editButton=$('edit-last-bill');
@@ -119,18 +121,14 @@ async function lookupCustomer(){
   try{
     const response=await fetch(`${SHEET_API_URL}?phone=${encodeURIComponent(phone)}&includeLastInvoice=true`);
     const data=await response.json();
-    if(data.found&&data.name){
-      $('customer-name').value=data.name;render();message.textContent='Saved customer found and filled in.';
-      savedLastInvoice=data.lastInvoice&&Array.isArray(data.lastInvoice.items)?data.lastInvoice:null;
-      editButton.hidden=!savedLastInvoice;
-    }
+    if(data.found&&data.name){$('customer-name').value=data.name;render();savedLastInvoice=data.lastInvoice&&Array.isArray(data.lastInvoice.items)?data.lastInvoice:null;editButton.hidden=!savedLastInvoice;message.textContent='Saved customer found and filled in.';}
     else {message.textContent='New customer — details will be saved when you save this bill.';savedLastInvoice=null;editButton.hidden=true;}
   }catch{message.textContent='Could not reach the customer sheet right now.';savedLastInvoice=null;editButton.hidden=true;}
 }
 function loadLastInvoice(data){
   $('invoice-number').value=data.invoiceNumber||invoiceNumber(); $('invoice-date').value=data.date||$('invoice-date').value;
   $('customer-name').value=data.customerName||$('customer-name').value; $('customer-phone').value=data.phone||$('customer-phone').value;
-  $('shipping').value=Math.max(0,Number(data.shipping)||0); $('item-editor-list').innerHTML='';
+  $('shipping').value=Math.max(0,Number(data.shipping)||0); $('returns').value=Math.max(0,Number(data.returns)||0); $('item-editor-list').innerHTML='';
   (data.items.length?data.items:[{}]).forEach(item=>addItem(item.name||'',Math.max(0,Number(item.qty)||0),Math.max(0,Number(item.price)||0)));
   render(); setMessage('Last saved bill loaded. You can continue editing it.','success');
 }
@@ -149,7 +147,7 @@ async function saveToSheet(options={}){
 }
 async function autoSaveToSheet(){await saveToSheet({silent:true});}
 function saveInvoice(){const content=JSON.stringify(invoiceFile(),null,2);const url=URL.createObjectURL(new Blob([content],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download=`Invoice-${$('invoice-number').value}.json`;link.click();URL.revokeObjectURL(url);setMessage('Invoice file saved. You can open it later to continue editing.','success');}
-function openInvoice(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.items))throw new Error();$('invoice-number').value=data.invoiceNumber||invoiceNumber();$('invoice-date').value=data.date||$('invoice-date').value;$('customer-name').value=data.customerName||'Customer';$('customer-phone').value=data.customerPhone||'';$('shipping').value=Math.max(0,Number(data.shipping)||0);$('item-editor-list').innerHTML='';(data.items.length?data.items:[{}]).forEach(item=>addItem(item.name||'',Math.max(0,Number(item.qty)||0),Math.max(0,Number(item.price)||0)));render();setMessage('Saved invoice opened. You can edit it now.','success');}catch{setMessage('That file is not a valid Quick Invoice file.','error');}event.target.value='';};reader.readAsText(file);}
+function openInvoice(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.items))throw new Error();$('invoice-number').value=data.invoiceNumber||invoiceNumber();$('invoice-date').value=data.date||$('invoice-date').value;$('customer-name').value=data.customerName||'Customer';$('customer-phone').value=data.customerPhone||'';$('shipping').value=Math.max(0,Number(data.shipping)||0);$('returns').value=Math.max(0,Number(data.returns)||0);$('item-editor-list').innerHTML='';(data.items.length?data.items:[{}]).forEach(item=>addItem(item.name||'',Math.max(0,Number(item.qty)||0),Math.max(0,Number(item.price)||0)));render();setMessage('Saved invoice opened. You can edit it now.','success');}catch{setMessage('That file is not a valid Quick Invoice file.','error');}event.target.value='';};reader.readAsText(file);}
 
 const today=new Date(); $('invoice-date').value=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-'); $('invoice-number').value=invoiceNumber();
 function addNewItem(event){
@@ -173,6 +171,7 @@ $('add-item').addEventListener('touchend',addNewItem,{passive:false});
 $('download-pdf').addEventListener('click',downloadPdf); $('share-invoice').addEventListener('click',shareInvoice); $('print-invoice').addEventListener('click',printInvoice);
 $('save-invoice').addEventListener('click',saveInvoice); $('open-invoice').addEventListener('change',openInvoice);
 $('save-to-sheet').addEventListener('click',saveToSheet);
+$('new-bill').addEventListener('click',()=>{const url=new URL(window.location.href);url.searchParams.set('newBill',Date.now().toString());window.location.replace(url.toString());});
 let installPrompt;
 window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;$('install-app').hidden=false;});
 $('install-app').addEventListener('click',async()=>{if(!installPrompt)return;installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$('install-app').hidden=true;});
