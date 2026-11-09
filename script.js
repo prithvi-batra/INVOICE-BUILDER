@@ -43,7 +43,12 @@ function render(){
   text('preview-invoice-number',$('invoice-number').value); text('preview-date',formatDate($('invoice-date').value));
   let subtotal=0, original=0, pieces=0;
   $('preview-items').innerHTML=items.map(item=>{const mrp=item.price/0.80,total=item.qty*item.price;subtotal+=total;original+=item.qty*mrp;pieces+=item.qty;return `<tr><td>${item.number}</td><td><span class="item-name">${escapeHtml(item.name)}</span></td><td>${item.qty}</td><td><span class="mrp">${money(mrp)}</span></td><td><span class="sale-price">${money(item.price)}</span></td><td>${money(total)}</td></tr>`;}).join('');
-  const savings=original-subtotal; text('preview-pieces',pieces); text('preview-subtotal',money(subtotal)); text('preview-savings',money(savings)); text('preview-grand-total',money(Math.max(0,subtotal+shipping-returns)));
+  const savings=original-subtotal;
+  const grandTotal=Math.max(0,original-savings+shipping-returns);
+  text('preview-pieces',pieces);
+  text('preview-subtotal',money(original));
+  text('preview-savings',`−${money(savings)}`);
+  text('preview-grand-total',money(grandTotal));
   $('preview-shipping-row').hidden=shipping<=0; text('preview-shipping',money(shipping));
   $('preview-returns-row').hidden=returns<=0; text('preview-returns',`−${money(returns)}`);
 }
